@@ -1,10 +1,12 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,6 +17,7 @@ import java.util.Map;
 @Slf4j
 public class UserController {
     private final Map<Integer, User> users = new HashMap<>();
+    private int id = 1;
 
     @GetMapping
     public Collection<User> findAll() {
@@ -23,7 +26,7 @@ public class UserController {
     }
 
     @PostMapping
-    public User create(@RequestBody User user) {
+    public User create(@Valid @RequestBody User user) {
         if (user.getEmail() == null || user.getEmail().isBlank()) {
             throw new ValidationException("Адрес электронной почты не может быть пустым.");
         }
@@ -39,18 +42,20 @@ public class UserController {
         if (user.getBirthday().isAfter(LocalDate.now())) {
             throw new ValidationException("Дата рождения не может быть в будущем.");
         }
+        user.setId(id);
+        id++;
         users.put(user.getId(), user);
         log.debug("Добавили пользователя с Id " + user.getId());
         return user;
     }
 
     @PutMapping
-    public User put(@RequestBody User user) {
-        if (user.getEmail() == null || user.getEmail().isBlank()) {
-            throw new ValidationException("Адрес электронной почты не может быть пустым.");
+    public User put(@Valid @RequestBody User user) {
+        if (!users.containsKey(user.getId())) {
+            throw new IllegalArgumentException("Пользователя с таким Id не существует.");
         }
         users.put(user.getId(), user);
-        log.debug("Изменили пользователя с Id " + user.getId());
-        return user;
+            log.debug("Изменили пользователя с Id " + user.getId());
+            return user;
     }
 }

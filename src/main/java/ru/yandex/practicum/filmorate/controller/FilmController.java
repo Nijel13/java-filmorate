@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import java.util.Map;
 @Slf4j
 public class FilmController {
     private final Map<Integer, Film> films = new HashMap<>();
+    private int id = 1;
 
     @GetMapping
     public Collection<Film> findAll() {
@@ -23,7 +25,7 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film create(@RequestBody Film film) {
+    public Film create(@Valid @RequestBody Film film) {
         if (film.getName().isEmpty() || film.getName() == null) {
             throw new ValidationException("Название фильма не может быть пустым.");
         }
@@ -39,18 +41,25 @@ public class FilmController {
         if (film.getDuration() < 0) {
             throw new ValidationException("Продолжительность фильма должна быть положительной.");
         }
+
+        film.setId(id);
+        id++;
         films.put(film.getId(), film);
         log.debug("Фильм с Id" + film.getId() + "был добавлен в список");
         return film;
     }
 
     @PutMapping
-    public Film put(@RequestBody Film film) {
+    public Film put(@Valid @RequestBody Film film) {
         if (film.getName().isEmpty() || film.getName() == null) {
             throw new ValidationException("Название фильма не может быть пустым.");
         }
+
+        if (!films.containsKey(film.getId())) {
+            throw new IllegalArgumentException("Фильм с таким Id не существует.");
+        }
         films.put(film.getId(), film);
-        log.debug("Фильм с Id " + film.getId() + "был измененён");
+        log.debug("Изменили фильм с Id " + film.getId());
         return film;
     }
 }
