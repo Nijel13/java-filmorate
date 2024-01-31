@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -11,11 +12,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/films")
+@Slf4j
 public class FilmController {
     private final Map<Integer, Film> films = new HashMap<>();
 
     @GetMapping
     public Collection<Film> findAll() {
+        log.debug("Вывели список всех фильмов");
         return films.values();
     }
 
@@ -25,7 +28,7 @@ public class FilmController {
             throw new ValidationException("Название фильма не может быть пустым.");
         }
 
-        if (film.getDescription().length() > 199) {
+        if (film.getDescription().length() > 200) {
             throw new ValidationException("Максимальная длина описания — 200 символов");
         }
 
@@ -37,6 +40,7 @@ public class FilmController {
             throw new ValidationException("Продолжительность фильма должна быть положительной.");
         }
         films.put(film.getId(), film);
+        log.debug("Фильм с Id" + film.getId() + "был добавлен в список");
         return film;
     }
 
@@ -46,6 +50,7 @@ public class FilmController {
             throw new ValidationException("Название фильма не может быть пустым.");
         }
         films.put(film.getId(), film);
+        log.debug("Фильм с Id " + film.getId() + "был измененён");
         return film;
     }
 }
