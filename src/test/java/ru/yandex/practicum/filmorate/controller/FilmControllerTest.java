@@ -35,6 +35,7 @@ public class FilmControllerTest {
         assertFalse(violations.isEmpty());
         assertEquals(2, violations.size());
     }
+
     @Test
     void isFilmAddAndGetID() {
         Film film = new Film(0, "FilmName", "FilmDescription",
@@ -42,6 +43,7 @@ public class FilmControllerTest {
         filmController.create(film);
         assertEquals(1, film.getId());
     }
+
     @Test
     void isFilmNotAddIfDurationNegative() {
         Film filmWithNegativeDuration = new Film(0, "FilmName", "FilmDescription",

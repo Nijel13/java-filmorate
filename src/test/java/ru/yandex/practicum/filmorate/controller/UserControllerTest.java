@@ -32,6 +32,7 @@ public class UserControllerTest {
         assertFalse(violations.isEmpty());
         assertEquals(2, violations.size());
     }
+
     @Test
     void isUserCreateAndGetID() {
         User user = new User( "name@name.ru", "IgoR", "name",
@@ -39,6 +40,7 @@ public class UserControllerTest {
         userController.create(user);
         assertEquals(1, user.getId());
     }
+
     @Test
     void isUserWithNullNameAndEmptyNameBecomeLogin() {
         User userWithNullName = new User( "name@name.ru", "IgoR", null,
