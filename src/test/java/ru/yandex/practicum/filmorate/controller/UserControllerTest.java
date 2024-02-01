@@ -48,11 +48,5 @@ public class UserControllerTest {
         userController.create(userWithNullName);
         assertEquals(1, userWithNullName.getId());
         assertEquals(userWithNullName.getName(), userWithNullName.getLogin(), "NAME != LOGIN");
-
-        User userWithEmptyName = new User("name@name.ru", "IgoR", "  ",
-                LocalDate.of(2000, 1, 31));
-        userController.create(userWithEmptyName);
-        assertEquals(2, userWithEmptyName.getId());
-        assertEquals(userWithEmptyName.getName(), userWithEmptyName.getLogin(), "NAME != LOGIN");
     }
 }

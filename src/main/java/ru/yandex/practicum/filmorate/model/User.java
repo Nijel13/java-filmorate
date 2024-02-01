@@ -19,7 +19,6 @@ public class User {
     @NotBlank
     private String email;
     @NotBlank(message = "Логин не может быть пустым и содержать пробелы")
-    @NotBlank
     private String login;
     private String name;
     @Past(message = "Дата рождения не может быть в будущем")
