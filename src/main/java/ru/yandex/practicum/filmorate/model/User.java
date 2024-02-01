@@ -5,6 +5,8 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Past;
 import java.time.LocalDate;
 
 @Validated
@@ -12,11 +14,15 @@ import java.time.LocalDate;
 public class User {
 
     private int id;
-    @Email
+    @Email(message = "Email не подходит")
+    @NotNull
+    @NotBlank
     private String email;
+    @NotBlank(message = "Логин не может быть пустым и содержать пробелы")
     @NotBlank
     private String login;
     private String name;
+    @Past(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
 
     public User(String email, String login, String name, LocalDate birthday) {
@@ -24,7 +30,9 @@ public class User {
         this.login = login;
         if (name == null) {
             this.name = login;
-        } else this.name = name;
+        } else {
+            this.name = name;
+        }
         this.birthday = birthday;
     }
 }

@@ -3,11 +3,9 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Data;
 import lombok.ToString;
 import org.springframework.validation.annotation.Validated;
+import ru.yandex.practicum.filmorate.validators.MinimumDate;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 /**
@@ -20,12 +18,13 @@ public class Film {
 
     private int id;
     @NotNull
-    @NotBlank
+    @NotBlank(message = "Название фильма не может быть пустым")
     private String name;
-    @Size(max = 200)
+    @Size(max = 200, message = "Длина описания фильма должна быть не больше {max} символов")
     private String description;
+    @MinimumDate
     private LocalDate releaseDate;
-    @Positive
+    @Positive(message = "Продолжительность фильма должна быть положительной")
     private int duration;
 
     public Film(int id, String name, String description, LocalDate releaseDate, int duration) {
