@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.ConstraintViolation;
@@ -49,6 +48,6 @@ public class FilmControllerTest {
         Film filmWithNegativeDuration = new Film(0, "FilmName", "FilmDescription",
                 LocalDate.of(1985, 1, 13), -100);
         filmController.create(filmWithNegativeDuration);
-        assertNull( null, "Продолжительность фильма должна быть положительной.");
+        assertNull(null, "Продолжительность фильма должна быть положительной.");
     }
 }
