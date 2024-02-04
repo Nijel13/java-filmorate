@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
@@ -24,6 +25,7 @@ public class UserController {
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
+        userValidation(user);
         user.setId(id);
         id++;
         users.put(user.getId(), user);
@@ -39,5 +41,11 @@ public class UserController {
         users.put(user.getId(), user);
         log.debug("Изменили пользователя с Id " + user.getId());
         return user;
+    }
+
+    private void userValidation(User user) throws ValidationException {
+        if (user.getName() == null || user.getName().isEmpty()) {
+            user.setName(user.getLogin());
+        }
     }
 }

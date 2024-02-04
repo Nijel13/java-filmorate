@@ -11,7 +11,8 @@ import javax.validation.ValidatorFactory;
 import java.time.LocalDate;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class UserControllerTest {
     private Validator validator;
@@ -26,7 +27,7 @@ public class UserControllerTest {
 
     @Test
     void isCreateUserWithAllArgumentsNotGood() {
-        User user = new User("name@", " ", " ",
+        User user = new User(1, "name@", " ", " ",
                 LocalDate.of(2024, 1, 31));
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertFalse(violations.isEmpty());
@@ -35,7 +36,7 @@ public class UserControllerTest {
 
     @Test
     void isUserCreateAndGetID() {
-        User user = new User("name@name.ru", "IgoR", "name",
+        User user = new User(1, "name@name.ru", "IgoR", "name",
                 LocalDate.of(2000, 1, 31));
         userController.create(user);
         assertEquals(1, user.getId());
@@ -43,7 +44,7 @@ public class UserControllerTest {
 
     @Test
     void isUserWithNullNameAndEmptyNameBecomeLogin() {
-        User userWithNullName = new User("name@name.ru", "IgoR", null,
+        User userWithNullName = new User(1, "name@name.ru", "IgoR", null,
                 LocalDate.of(2000, 1, 31));
         userController.create(userWithNullName);
         assertEquals(1, userWithNullName.getId());
