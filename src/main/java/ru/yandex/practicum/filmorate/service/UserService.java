@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class UserService {
+public class UserService implements IUserService {
     private final InMemoryUserStorage inMemoryUserStorage;
 
     public Collection<User> getUsers() {

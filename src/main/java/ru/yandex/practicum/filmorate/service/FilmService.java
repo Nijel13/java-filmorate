@@ -11,7 +11,7 @@ import java.util.Collection;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class FilmService {
+public class FilmService implements IFilmService {
     private final InMemoryFilmStorage inMemoryFilmStorage;
 
     public void addLikeToFilm(int filmId, int userId) {
