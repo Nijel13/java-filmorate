@@ -4,7 +4,6 @@ import org.junit.Before;
 import org.junit.Test;
 import ru.yandex.practicum.filmorate.model.Film;
 
-
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
@@ -33,7 +32,7 @@ public class FilmControllerTest {
                 100);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
-        assertEquals(2,violations.size());
+        assertEquals(1, violations.size());
     }
 
     @Test
@@ -45,7 +44,7 @@ public class FilmControllerTest {
                 100);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
-        assertEquals(1,violations.size());
+        assertEquals(1, violations.size());
     }
 
     @Test

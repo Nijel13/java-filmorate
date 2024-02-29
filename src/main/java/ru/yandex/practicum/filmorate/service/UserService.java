@@ -2,50 +2,59 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.UserStorage;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class UserService implements IUserService {
-    private final InMemoryUserStorage inMemoryUserStorage;
+
+    @Qualifier("userStorageImpl")
+    private final UserStorage userStorage;
 
     public Collection<User> getUsers() {
-        return inMemoryUserStorage.getUsers();
+        return userStorage.get();
     }
 
     public User getUserById(int id) {
-        return inMemoryUserStorage.getUserById(id);
+        return userStorage.getById(id);
     }
 
     public User addUser(User user) {
         log.info("Пользователь {} добавлен", user);
-        return inMemoryUserStorage.addUser(user);
+        return userStorage.add(user);
     }
 
     public User updateUser(User user) {
         log.info("Пользователь {} обновлен", user);
-        return inMemoryUserStorage.updateUser(user);
+        return userStorage.update(user);
     }
 
     public void deleteUser(int id) {
-        inMemoryUserStorage.deleteUser(id);
+        userStorage.delete(id);
     }
 
     public LinkedHashSet<User> getUserFriends(int id) {
-        User user = inMemoryUserStorage.getUserById(id);
-        Set<Integer> usersId = user.getFriends();
-        Set<User> commonFriends = new HashSet<>();
+        User user = userStorage.getById(id);
+
+        Set<Integer> usersId = user.getFriendStatus().keySet();
+        Set<User> friends = new HashSet<>();
+
         for (Integer integer : usersId) {
-            User users = inMemoryUserStorage.getUserById(integer);
-            commonFriends.add(users);
+            User userFriend = userStorage.getById(integer);
+            if (userFriend != null) {
+                friends.add(userFriend);
+            }
         }
-        return commonFriends.stream()
+
+        return friends.stream()
                 .sorted(Comparator.comparing(User::getId))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -54,8 +63,11 @@ public class UserService implements IUserService {
     public Set<User> getCommonFriends(int userId,
                                       int userCommonFriendId) {
         List<Integer> numbers = new ArrayList<>();
-        numbers.addAll(inMemoryUserStorage.getUserById(userId).getFriends());
-        numbers.addAll(inMemoryUserStorage.getUserById(userCommonFriendId).getFriends());
+        Set<Integer> i = userStorage.getById(userId).getFriendStatus().keySet();
+        Set<Integer> j = userStorage.getById(userCommonFriendId).getFriendStatus().keySet();
+
+        numbers.addAll(i);
+        numbers.addAll(j);
 
         if (!numbers.isEmpty()) {
             Map<Integer, Long> map = numbers
@@ -70,12 +82,7 @@ public class UserService implements IUserService {
                     .filter(e -> e.getValue() > 1)
                     .map(Map.Entry::getKey)
                     .collect(Collectors.toSet());
-            Set<User> commonFriends = new HashSet<>();
-            for (Integer integer : id) {
-                User user = inMemoryUserStorage.getUserById(integer);
-                commonFriends.add(user);
-            }
-            return commonFriends;
+            return userStorage.getCommonFriends(id);
         } else {
             return new HashSet<>();
         }
@@ -84,20 +91,21 @@ public class UserService implements IUserService {
     public void addFriend(int idUser,
                           int newFriendToUserId) {
 
-        User user1 = inMemoryUserStorage.getUserById(idUser);
-        User user2 = inMemoryUserStorage.getUserById(newFriendToUserId);
+        User user = userStorage.getById(idUser);
+        User userCheck = userStorage.getById(newFriendToUserId);
 
-        user2.addFriend(idUser);
-        user1.addFriend(newFriendToUserId);
+        user.setFriendStatus(newFriendToUserId, "Запрос отправлен");
+
+        updateUser(user);
     }
+
 
     public void deleteFriend(int idUser,
                              int removingFriendId) {
 
-        User user1 = inMemoryUserStorage.getUserById(idUser);
+        User user1 = userStorage.getById(idUser);
         user1.deleteFriend(removingFriendId);
 
-        User user2 = inMemoryUserStorage.getUserById(removingFriendId);
-        user2.deleteFriend(idUser);
+        updateUser(user1);
     }
 }

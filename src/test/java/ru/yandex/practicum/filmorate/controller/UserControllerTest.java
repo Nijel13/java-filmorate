@@ -32,7 +32,7 @@ public class UserControllerTest {
                 LocalDate.of(2000, 2, 22));
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
-        assertEquals(1,violations.size());
+        assertEquals(1, violations.size());
     }
 
     @Test
@@ -44,7 +44,7 @@ public class UserControllerTest {
                 LocalDate.of(2000, 2, 22));
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
-        assertEquals(1,violations.size());
+        assertEquals(1, violations.size());
     }
 
     @Test
@@ -56,6 +56,6 @@ public class UserControllerTest {
                 LocalDate.of(2030, 2, 22));
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
-        assertEquals(1,violations.size());
+        assertEquals(1, violations.size());
     }
 }
