@@ -17,6 +17,7 @@ import java.util.Map;
                 UserController.class,
                 MpaController.class,
                 GenreController.class})
+
 public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
