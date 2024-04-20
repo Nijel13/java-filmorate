@@ -1,58 +1,75 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.Collection;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@Slf4j
 public class InMemoryUserStorage implements UserStorage {
-    private final Map<Integer, User> users = new ConcurrentHashMap<>();
-    private int id = 1;
+    private Map<Long, User> users = new HashMap<>();
 
-    public Collection<User> getUsers() { //get all films
-        return users.values();
-    }
-
-    public User getUserById(int id) {
-        if (!users.containsKey(id)) throw new IllegalArgumentException("Неверный аргумент");
-        return users.get(id);
-    }
+    private Long id = 0L;
 
     @Override
     public User addUser(User user) {
-        user.setId(id);
-        id++;
-        users.put(user.getId(), defaultUserName(user));
+        if (validationUser(user)) {
+            user.setId(++id);
+            users.put(user.getId(), user);
+            log.info(user + " Пользователь успешно добавлен.");
+        }
         return user;
     }
 
     @Override
     public User updateUser(User user) {
         if (!users.containsKey(user.getId())) {
-            throw new IllegalStateException("Неверный id");
+            throw new NotFoundException(user + " Такой пользователь не зарегистрирован");
         }
-        users.put(user.getId(), defaultUserName(user));
+        if (validationUser(user)) {
+            users.put(user.getId(), user);
+            log.info(user + " Пользователь успешно обновлен.");
+        }
         return user;
     }
 
     @Override
-    public void deleteUser(int id) {
-        if (id > 0) {
-            users.remove(id);
-        } else {
-            throw new IllegalStateException("Неверное значение");
-        }
+    public List<User> listUsers() {
+
+        return new ArrayList<>(users.values());
     }
 
-    public User defaultUserName(User user) {
-        if (user.getName() == null ||
-                user.getName().equals("")) {
-            user.setName(user.getLogin());
-            return user;
+    @Override
+    public User getUserById(Long id) {
+        User user = users.get(id);
+        if (user == null) {
+            throw new NotFoundException("Пользователь по id: " + id + " не найден!");
         }
         return user;
+    }
+
+    private boolean validationUser(User user) {
+        if (user.getLogin().contains(" ")) {
+            log.info(user.getLogin() + " Ошибка! Логин не может быть пустым и содержать пробелы!");
+            throw new ValidationException("Логин не может быть пустым и содержать пробелы.");
+        }
+
+        if (user.getBirthday().isAfter(LocalDate.now())) {
+            log.info(user.getBirthday() + " Ошибка! Дата рождения не может быть в будущем!");
+            throw new ValidationException("Дата рождения не может быть в будущем.");
+        }
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+            log.info("Имя пользователя для отображения пустое — в таком случае будет используем логин.");
+        }
+        return true;
     }
 }
