@@ -1,67 +1,79 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
+import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
-import java.util.Collection;
-import java.util.Set;
+import javax.validation.constraints.Min;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
-@AllArgsConstructor
+@Validated
+@RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
 
-    @GetMapping("/{id}/friends")
-    public Collection<User> getUserFriends(@PathVariable int id) {
-        return userService.getUserFriends(id);
-    }
-
-    @PutMapping("/{idUser}/friends/{newFriendToUserId}")
-    public void addFriend(@PathVariable int idUser,
-                          @PathVariable int newFriendToUserId) {
-        userService.addFriend(idUser, newFriendToUserId);
-    }
-
-    @DeleteMapping("/{idUser}/friends/{removeFriendToUserId}")
-    public void deleteFriend(@PathVariable int idUser,
-                             @PathVariable int removeFriendToUserId) {
-        userService.deleteFriend(idUser, removeFriendToUserId);
-    }
-
-    @GetMapping("/{userId}/friends/common/{userCommonFriendId}")
-    public Set<User> getCommonFriends(@PathVariable int userId,
-                                      @PathVariable int userCommonFriendId) {
-        return userService.getCommonFriends(userId, userCommonFriendId);
-    }
-
-    @GetMapping
-    public Collection<User> getUsers() {
-        return userService.getUsers();
-    }
-
-    @GetMapping("/{id}")
-    public User getUserById(@PathVariable int id) {
-        return userService.getUserById(id);
-    }
-
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
+        log.info("Добавляем пользователя: " + user);
         return userService.addUser(user);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
+        log.info("Обновляем пользователя: " + user);
         return userService.updateUser(user);
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable int id) {
-        userService.deleteUser(id);
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriendById(@PathVariable Long id, @PathVariable @Min(1) Long friendId) {
+        log.info("Добавление пользователя по id: " + friendId + " в друзья к пользователю по id: " + id);
+        userService.addFriendById(id, friendId);
     }
+
+    @GetMapping
+    public List<User> listUsers() {
+        log.info("Получаем список пользователей, его размер: " + userService.listUsers().size());
+        return userService.listUsers();
+    }
+
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable Long id) {
+        log.info("Получаем пользователя по id: " + id);
+        return userService.getUserById(id);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getListFriends(@PathVariable Long id) {
+        log.info("Получаем список друзей пользователя по id: " + id);
+        return userService.getListFriends(id);
+    }
+
+    @GetMapping("{id}/friends/common/{otherId}")
+    public List<User> getListFriendsSharedWithAnotherUser(@PathVariable Long id, @PathVariable Long otherId) {
+        log.info("Получаем список друзей пользователя по id: " + id + " общих с другим пользователем по id: " + otherId);
+        return userService.getListFriendsSharedWithAnotherUser(id, otherId);
+    }
+
+    @DeleteMapping("{id}/friends/{friendId}")
+    public void deleteFriendById(@PathVariable Long id, @PathVariable Long friendId) {
+        log.info("Удаление пользователя по id: " + friendId + " из друзей пользователя по id: " + id);
+        userService.deleteFriendById(id, friendId);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ValidationException handleException(ConstraintViolationException exception) {
+        return new ValidationException(exception.getMessage());
+    }
+
 }

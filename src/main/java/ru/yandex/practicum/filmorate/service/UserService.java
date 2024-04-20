@@ -1,111 +1,77 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.UserStorage;
+import org.springframework.validation.annotation.Validated;
+import ru.yandex.practicum.filmorate.dao.UserDao;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
+import java.time.LocalDate;
+import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
-public class UserService implements IUserService {
+@Validated
+public class UserService {
 
-    @Qualifier("userStorageImpl")
-    private final UserStorage userStorage;
+    private final UserDao userDao;
 
-    public Collection<User> getUsers() {
-        return userStorage.get();
+    public void addFriendById(Long id, Long friendId) { //PUT /users/{id}/friends/{friendId} — добавление в друзья.
+        userDao.addFriendById(id, friendId);
+        log.info(userDao.getUserById(id) + " теперь дружит с " + userDao.getUserById(friendId));
     }
 
-    public User getUserById(int id) {
-        return userStorage.getById(id);
+    public void deleteFriendById(Long id, Long friendId) { //DELETE /users/{id}/friends/{friendId} — удаление из друзей.
+        userDao.removeFriendById(id, friendId);
+    }
+
+    public List<User> getListFriends(Long id) { //GET /users/{id}/friends — возвращаем список пользователей, являющихся его друзьями.
+        return userDao.getListFriends(id);
+    }
+
+    //GET /users/{id}/friends/common/{otherId} — список друзей, общих с другим пользователем.
+    public List<User> getListFriendsSharedWithAnotherUser(Long id, Long otherId) {
+        return userDao.getCommonFriends(id, otherId);
+    }
+
+    public User getUserById(Long id) {
+        return userDao.getUserById(id);
     }
 
     public User addUser(User user) {
-        log.info("Пользователь {} добавлен", user);
-        return userStorage.add(user);
+        validationFilm(user);
+        return userDao.addUser(user);
     }
 
     public User updateUser(User user) {
-        log.info("Пользователь {} обновлен", user);
-        return userStorage.update(user);
+        validationFilm(user);
+        return userDao.updateUser(user);
     }
 
-    public void deleteUser(int id) {
-        userStorage.delete(id);
+    public List<User> listUsers() {
+        return userDao.listUsers();
     }
 
-    public LinkedHashSet<User> getUserFriends(int id) {
-        User user = userStorage.getById(id);
-
-        Set<Integer> usersId = user.getFriendStatus().keySet();
-        Set<User> friends = new HashSet<>();
-
-        for (Integer integer : usersId) {
-            User userFriend = userStorage.getById(integer);
-            if (userFriend != null) {
-                friends.add(userFriend);
-            }
+    private User validationFilm(User user) {
+        if (user.getLogin().trim().contains(" ")) {
+            log.info(user.getLogin() + " Ошибка! Логин не может быть пустым и содержать пробелы!");
+            throw new NotFoundException("Логин не может быть пустым и содержать пробелы.");
         }
 
-        return friends.stream()
-                .sorted(Comparator.comparing(User::getId))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-
-    public Set<User> getCommonFriends(int userId,
-                                      int userCommonFriendId) {
-        List<Integer> numbers = new ArrayList<>();
-        Set<Integer> i = userStorage.getById(userId).getFriendStatus().keySet();
-        Set<Integer> j = userStorage.getById(userCommonFriendId).getFriendStatus().keySet();
-
-        numbers.addAll(i);
-        numbers.addAll(j);
-
-        if (!numbers.isEmpty()) {
-            Map<Integer, Long> map = numbers
-                    .stream()
-                    .collect(
-                            Collectors
-                                    .groupingBy(n -> n, Collectors.counting())
-                    );
-            Set<Integer> id = map
-                    .entrySet()
-                    .stream()
-                    .filter(e -> e.getValue() > 1)
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toSet());
-            return userStorage.getCommonFriends(id);
-        } else {
-            return new HashSet<>();
+        if (user.getBirthday().isAfter(LocalDate.now())) {
+            log.info(user.getBirthday() + " Ошибка! Дата рождения не может быть в будущем!");
+            throw new ValidationException("Дата рождения не может быть в будущем.");
         }
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+            log.info("Имя пользователя для отображения пустое — в таком случае будет используем логин.");
+        }
+
+        return user;
     }
 
-    public void addFriend(int idUser,
-                          int newFriendToUserId) {
-
-        User user = userStorage.getById(idUser);
-        User userCheck = userStorage.getById(newFriendToUserId);
-
-        user.setFriendStatus(newFriendToUserId, "Запрос отправлен");
-
-        updateUser(user);
-    }
-
-
-    public void deleteFriend(int idUser,
-                             int removingFriendId) {
-
-        User user1 = userStorage.getById(idUser);
-        user1.deleteFriend(removingFriendId);
-
-        updateUser(user1);
-    }
 }
