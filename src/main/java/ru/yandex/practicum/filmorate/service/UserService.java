@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.dao.UserDao;
+import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -26,10 +27,16 @@ public class UserService {
     }
 
     public void deleteFriendById(Long id, Long friendId) { //DELETE /users/{id}/friends/{friendId} — удаление из друзей.
+        if ((userDao.getUserById(id) == null) || userDao.getUserById(friendId) == null) {
+            throw new NotFoundException("для id " + id + "нет информации о друзьях");
+        }
         userDao.removeFriendById(id, friendId);
     }
 
     public List<User> getListFriends(Long id) { //GET /users/{id}/friends — возвращаем список пользователей, являющихся его друзьями.
+        if (userDao.getUserById(id) == null) {
+            throw new NotFoundException("для id " + id + "нет информации о друзьях");
+        }
         return userDao.getListFriends(id);
     }
 
@@ -57,9 +64,10 @@ public class UserService {
     }
 
     private User validationFilm(User user) {
+
         if (user.getLogin().trim().contains(" ")) {
             log.info(user.getLogin() + " Ошибка! Логин не может быть пустым и содержать пробелы!");
-            throw new NotFoundException("Логин не может быть пустым и содержать пробелы.");
+            throw new BadRequestException("Логин не может быть пустым и содержать пробелы.");
         }
 
         if (user.getBirthday().isAfter(LocalDate.now())) {

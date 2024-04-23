@@ -8,7 +8,6 @@ import org.springframework.validation.annotation.Validated;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,12 +30,12 @@ public class Film {
     private Mpa mpa;
     private List<Genre> genres;
 
-    public List<Genre> getGenres() {
-        if (genres == null) {
-            genres = new ArrayList<>();
-        }
-        return genres;
-    }
+//    public List<Genre> getGenres() {
+//        if (genres == null) {
+//            genres = new ArrayList<>();
+//        }
+//        return genres;
+//    }
 
     public void setMpa(Mpa mpa) {
         this.mpa = mpa;

@@ -52,23 +52,23 @@ create table IF NOT EXISTS USERS
 (
     USER_ID       INTEGER auto_increment,
     USER_EMAIL    CHARACTER VARYING(100) not null,
-    USER_LOGIN    CHARACTER VARYING(20)  not null,
-    USER_NAME     CHARACTER VARYING(20)  not null,
+    USER_LOGIN    CHARACTER VARYING(30)  not null,
+    USER_NAME     CHARACTER VARYING(30)  not null,
     USER_BIRTHDAY DATE                   not null,
     constraint USERS_PK
         primary key (USER_ID)
 );
 
-drop table IF EXISTS FILM_LIKES CASCADE;
+drop table IF EXISTS FILMS_LIKES CASCADE;
 
-create table IF NOT EXISTS FILM_LIKES
+create table IF NOT EXISTS FILMS_LIKES
 (
     FILMS_LIKES_ID                   INTEGER not null,
-    FILM_LIKES_USER_ID_WHO_LIKE_FILM INTEGER not null,
-    constraint FILM_LIKES_FILMS_FILM_ID_FK
+    FILMS_LIKES_USER_ID_WHO_LIKE_FILM INTEGER not null,
+    constraint FILMS_LIKES_FILMS_FILM_ID_FK
         foreign key (FILMS_LIKES_ID) references FILMS,
-    constraint FILM_LIKES_USERS_USER_ID_FK
-        foreign key (FILM_LIKES_USER_ID_WHO_LIKE_FILM) references USERS
+    constraint FILMS_LIKES_USERS_USER_ID_FK
+        foreign key (FILMS_LIKES_USER_ID_WHO_LIKE_FILM) references USERS
 );
 
 

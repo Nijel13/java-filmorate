@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -86,15 +87,15 @@ public class FilmDbStorage implements FilmDao {
 
     @Override
     public void addLikeFilmToUser(Long id, Long userId) {
-        final String sqlQueryInsertLike = "insert into FILM_LIKES(FILMS_LIKES_ID, FILM_LIKES_USER_ID_WHO_LIKE_FILM)" +
+        final String sqlQueryInsertLike = "insert into FILMS_LIKES(FILMS_LIKES_ID, FILMS_LIKES_USER_ID_WHO_LIKE_FILM)" +
                 " values (?, ?)";
         jdbcTemplate.update(sqlQueryInsertLike, id, userId);
     }
 
     @Override
     public void deleteLikeFilmToUser(Long id, Long userId) {
-        final String sqlQuery = "delete from FILM_LIKES" +
-                " where FILMS_LIKES_ID = ? and FILM_LIKES_USER_ID_WHO_LIKE_FILM = ?";
+        final String sqlQuery = "delete from FILMS_LIKES" +
+                " where FILMS_LIKES_ID = ? and FILMS_LIKES_USER_ID_WHO_LIKE_FILM = ?";
         jdbcTemplate.update(sqlQuery, id, userId);
     }
 
@@ -118,10 +119,11 @@ public class FilmDbStorage implements FilmDao {
             ps.setLong(5, film.getMpa().getId());
             return ps;
         }, keyHolder);
-        if (film.getGenres().size() > 0) {
+        if ((film.getGenres() != null) && film.getGenres().size() > 0) {
             final String sqlQuery = "INSERT INTO FILM_GENRES(FILM_GENRES_FILM_ID, FILM_GENRES_GENRES_ID) VALUES ( ?, ? );";
             jdbcTemplate.batchUpdate(sqlQuery, new BatchPreparedStatementSetter() {
                 @Override
+                @NonNull
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
                     ps.setLong(1, Long.parseLong(keyHolder.getKey().toString()));
                     ps.setLong(2, film.getGenres().get(i).getId());
@@ -140,9 +142,9 @@ public class FilmDbStorage implements FilmDao {
         jdbcTemplate.update(query, film.getName(), film.getDescription(), film.getReleaseDate(),
                 film.getDuration(), film.getMpa().getId(), film.getId());
         film.setMpa(mpaDao.getMpaById(film.getMpa().getId()));
-        if (film.getGenres().size() > 0) {
+        if ((film.getGenres() != null) && film.getGenres().size() > 0) {
 
-            final String sqlQueryListGenges = "select FILM_GENRES_GENRES_ID from FILM_GENRES" +
+            final String sqlQueryListGenges = "select DISTINCT FILM_GENRES_GENRES_ID from FILM_GENRES" +
                     " where FILM_GENRES_FILM_ID = ?";
             List<Long> listIdGenres = jdbcTemplate.queryForList(sqlQueryListGenges,
                     new Long[]{Long.parseLong(film.getId().toString())}, Long.class);
@@ -162,7 +164,7 @@ public class FilmDbStorage implements FilmDao {
                 jdbcTemplate.update(sqlQueryFilmGenres, film.getId(), aLong);
             }
         } else {
-            final String sqlQueryListGenges = "select FILM_GENRES_GENRES_ID from FILM_GENRES" +
+            final String sqlQueryListGenges = "select DISTINCT FILM_GENRES_GENRES_ID from FILM_GENRES" +
                     " where FILM_GENRES_FILM_ID = ?";
             List<Long> listIdGenres = jdbcTemplate.queryForList(sqlQueryListGenges,
                     new Long[]{Long.parseLong(film.getId().toString())}, Long.class);
