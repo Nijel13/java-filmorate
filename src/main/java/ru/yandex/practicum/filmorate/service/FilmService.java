@@ -14,7 +14,6 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,14 +53,15 @@ public class FilmService {
     };
 
     public List<Film> getPopularFilms(Integer count) {
-        List<Film> popFilms = filmDao.listFilms();
-        if (count >= popFilms.size()) {
-            count = popFilms.size();
-        }
-        return popFilms.stream()
-                .sorted(filmComparator)
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmDao.getPopularFilms(count);
+//        List<Film> popFilms = filmDao.listFilms();
+//        if (count >= popFilms.size()) {
+//            count = popFilms.size();
+//        }
+//        return popFilms.stream()
+//                .sorted(filmComparator)
+//                .limit(count)
+//                .collect(Collectors.toList());
     }
 //    public List<Film> getPopularFilms(Integer count) {
 //        List<Film> sortedByLikesFilms = filmDao.listFilms();
@@ -116,7 +116,7 @@ public class FilmService {
 
         if (!(film.getGenres() == null) && !(film.getGenres().isEmpty())) {
             Genre genre = new Genre(film.getGenres().iterator().next().getId(), film.getGenres().iterator().toString());
-            if (genre.getId() > 5) {
+            if (genre.getId() > 6) {
                 log.info("Ошибка! Неверный жанр фильма");
                 throw new BadRequestException("Неверный жанр фильма");
             }

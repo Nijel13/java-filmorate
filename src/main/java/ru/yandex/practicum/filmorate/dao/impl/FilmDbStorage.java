@@ -21,7 +21,9 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
@@ -63,13 +65,9 @@ public class FilmDbStorage implements FilmDao {
         final String sqlQuery = "SELECT FILM_ID, FILM_NAME, FILM_DESCRIPTION, FILM_RELEASE_DATE, FILM_DURATION, " +
                 "FILM_MPA, MPA_NAME FROM FILMS F JOIN MPA M on M.MPA_MPA_ID = F.FILM_MPA";
         List<Film> filmList = jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
-        Map<Long, Film> filmMap = new HashMap<>();
 
-        for (Film film : filmList) {
-            filmMap.put(film.getId(), film);
-        }
-        genreDao.setGenresForFilms(filmMap);
-        return new ArrayList<>(filmMap.values());
+        genreDao.setGenresForFilms(filmList);
+        return filmList;
     }
 
     @Override
@@ -79,10 +77,24 @@ public class FilmDbStorage implements FilmDao {
                     "FILM_MPA, MPA_NAME FROM FILMS INNER JOIN MPA ON FILMS.FILM_MPA = MPA.MPA_MPA_ID WHERE FILM_ID=?";
             Film film = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToFilm, id);
             film.setGenres(genreDao.getListGenresByMovieId(id));
+            film.setLikes(film.getId());
             return film;
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Фильм по id: " + id + " не найден!");
         }
+    }
+
+    @Override
+    public List<Film> getPopularFilms(Integer count) {
+        final String sqlQuery = String.format("SELECT FILM_ID, FILM_NAME, FILM_DESCRIPTION, FILM_RELEASE_DATE, FILM_DURATION, FILM_MPA, MPA_NAME, COUNT (F.FILM_ID)\n" +
+                " FROM FILMS F\n" +
+                " JOIN MPA M on M.MPA_MPA_ID = F.FILM_MPA\n" +
+                "JOIN FILMS_LIKES  AS FL ON FILMS_LIKES_ID = F.FILM_ID \n" +
+                "GROUP BY FILM_ID, FILM_NAME, FILM_DESCRIPTION, FILM_RELEASE_DATE, FILM_DURATION, FILM_MPA, MPA_NAME\n" +
+                "ORDER BY COUNT(F.FILM_ID) DESC LIMIT %d", count);
+        List<Film> filmList = jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
+        genreDao.setGenresForFilms(filmList);
+        return filmList;
     }
 
     @Override

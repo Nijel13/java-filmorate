@@ -4,7 +4,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.List;
-import java.util.Map;
 
 public interface GenreDao {
 
@@ -14,6 +13,6 @@ public interface GenreDao {
 
     List<Genre> getListGenresByMovieId(Long id);
 
-    void setGenresForFilms(Map<Long, Film> filmMap);
+    void setGenresForFilms(List<Film> films);
 
 }

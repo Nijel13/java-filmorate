@@ -30,13 +30,6 @@ public class Film {
     private Mpa mpa;
     private List<Genre> genres;
 
-//    public List<Genre> getGenres() {
-//        if (genres == null) {
-//            genres = new ArrayList<>();
-//        }
-//        return genres;
-//    }
-
     public void setMpa(Mpa mpa) {
         this.mpa = mpa;
     }

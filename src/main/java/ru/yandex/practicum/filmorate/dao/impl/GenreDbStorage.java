@@ -16,8 +16,10 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @Repository
@@ -60,18 +62,26 @@ public class GenreDbStorage implements GenreDao {
     }
 
     @Override
-    public void setGenresForFilms(Map<Long, Film> filmMap) {
+    public void setGenresForFilms(List<Film> films) {
         MapSqlParameterSource parameterSource = new MapSqlParameterSource();
-        parameterSource.addValue("ids", filmMap.keySet());
+        parameterSource.addValue("ids", films.stream().map(Film::getId).collect(Collectors.toList()));
         final String sqlQuery = "SELECT * FROM GENRES G join FILM_GENRES FG" +
                 " on G.GENRES_GENRES_ID = FG.FILM_GENRES_GENRES_ID WHERE FG.FILM_GENRES_FILM_ID IN (:ids)";
         List<Map<String, Object>> maps = namedParameterJdbcTemplate.queryForList(sqlQuery, parameterSource);
+        HashMap<Long, List<Genre>> genres = new HashMap<>();
         for (Map<String, Object> genre : maps) {
-            @SuppressWarnings("removal") Film film = filmMap.get(new Long(genre.get("FILM_GENRES_FILM_ID").toString()));
-            if (film.getGenres() == null) {
-                film.setGenres(new ArrayList<>());
+            Long filmId = Long.parseLong(genre.get("FILM_GENRES_FILM_ID").toString());
+            if (!genres.containsKey(filmId)) {
+                genres.put(filmId, new ArrayList<>());
             }
-            film.getGenres().add(new Genre((Integer) genre.get("FILM_GENRES_GENRES_ID"), (String) genre.get("GENRES_NAME")));
+            genres.get(filmId).add(
+                    new Genre(
+                            Integer.parseInt(genre.get("GENRES_GENRES_ID").toString()),
+                            genre.get("GENRES_NAME").toString()
+                    ));
+        }
+        for (Film film : films) {
+            film.setGenres(genres.get(film.getId()));
         }
     }
 
